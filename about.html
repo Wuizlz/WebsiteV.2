@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daniel Briseno</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .container {
+        background: linear-gradient(300deg, #a9a9a9, #e1d9d1, #454545);
+        background-size: 180% 180%;
+        animation: gradient-animation 18s ease infinite;
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 60px 60px 1fr 1fr 50px;
+        grid-template-areas:
+          "header-left header-right"
+          "about about"
+          "carousel carousel"
+          "text text"
+          "nav nav";
+      }
+
+      .header-left {
+        background-color: #bdb8b7;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        grid-area: header-left;
+      }
+
+      .header-right {
+        display: flex;
+        flex-shrink: 0;
+        justify-content: space-around;
+        align-items: center;
+        font-size: 20px;
+        background-color: #bdb8b7;
+        grid-area: header-right;
+      }
+
+      .about {
+        grid-area: about;
+        display: flex;
+        justify-content: center;
+      }
+
+      .carousel {
+        grid-area: carousel;
+        display: flex;
+        justify-content: center;
+        position: relative;
+      }
+
+      .carousel__item {
+        height: 300px;
+        padding: 1em;
+        font-family: "Quicksand", sans-serif;
+        font-weight: bold;
+        font-size: 2em;
+        color: whitesmoke;
+        display: none;
+      }
+
+      .carousel__item--selected {
+        display: block;
+      }
+
+      .carousel__nav {
+        width: 100%;
+        padding: 20px 0;
+        text-align: center;
+        grid-area: nav;
+      }
+
+      .carousel__button {
+        width: 10px;
+        height: 10px;
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        margin: 0 5px;
+        cursor: pointer;
+      }
+
+      .carousel__button--selected {
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      .text {
+        grid-area: text;
+        display: flex;
+        justify-content: center;
+      }
+
+      a {
+        text-decoration: none;
+        color: black;
+      }
+
+      a:hover {
+        color: #0056b3;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container gradient-background">
+      <div class="header-left">
+        <a href="./index.html"><img src="emoji-wink-fill.svg" width="50" /></a>
+        <p>Daniel B.</p>
+      </div>
+      <div class="header-right">
+        <a href="mailto:Brisenodan12@gmail.com">Contact</a>
+        <a href="./Resume-3.pdf" download="Daniel_Briseno_Resume.pdf">
+          Resume</a
+        >
+      </div>
+
+      <div class="about">
+        <h1>About me</h1>
+      </div>
+
+      <div class="carousel">
+        <div class="carousel__item">
+          <img
+            src="./images/me1.png"
+            alt="Daniel Briseno"
+            height="300px"
+          />
+        </div>
+        <div class="carousel__item">
+          <img src="./images/me.jpeg" alt="Daniel Briseno" height="300px" />
+        </div>
+        <div class="carousel__item">
+          <img src="./images/me2.jpeg" alt="Daniel Briseno" height="300px" />
+        </div>
+      </div>
+
+      <div class="carousel__nav"></div>
+
+      <div class="text">
+        <p style="margin-left: 20px;">
+          <span style="margin-left: 20px;">I am an aspiring software engineer,</span> passionately pursuing a degree in
+          computer science at Purdue Northwest. My love for technology drives me
+          to delve deep into coding, web development, and software engineering
+          concepts, constantly striving to enhance my skills. Beyond academics,
+          I immerse myself in gaming, where I find inspiration and develop
+          strategic thinking. Keeping a balanced lifestyle, I prioritize regular
+          workouts to stay fit and spend quality time with friends, which keeps
+          me grounded and motivated. With a commitment to continuous growth and
+          a holistic approach to life, I am excited to make a significant impact
+          in the field of software engineering, bringing innovative solutions to
+          the tech world.
+        </p>
+      </div>
+    </div>
+    <script>
+      document.querySelectorAll(".carousel").forEach((carousel) => {
+        const items = carousel.querySelectorAll(".carousel__item");
+        const nav = document.querySelector(".carousel__nav");
+        const buttonsHtml = Array.from(items, () => {
+          return `<span class="carousel__button"></span>`;
+        });
+
+        nav.innerHTML = buttonsHtml.join("");
+
+        const buttons = nav.querySelectorAll(".carousel__button");
+        buttons.forEach((button, i) => {
+          button.addEventListener("click", () => {
+            // Unselect all the items
+            items.forEach((item) =>
+              item.classList.remove("carousel__item--selected")
+            );
+            buttons.forEach((button) =>
+              button.classList.remove("carousel__button--selected")
+            );
+
+            // Select the clicked item and button
+            items[i].classList.add("carousel__item--selected");
+            button.classList.add("carousel__button--selected");
+          });
+        });
+        items[0].classList.add("carousel__item--selected");
+        buttons[0].classList.add("carousel__button--selected");
+      });
+    </script>
+  </body>
+</html>
