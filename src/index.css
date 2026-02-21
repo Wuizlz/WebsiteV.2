@@ -1,0 +1,223 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: "IBM Plex Sans", sans-serif;
+  background: radial-gradient(circle at top, rgba(253, 243, 231, 0.9), rgba(228, 221, 211, 0.9) 45%, rgba(214, 205, 192, 0.95) 100%);
+  color: #141414;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Unbounded", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(255, 232, 170, 0.9), rgba(12, 12, 12, 0.94) 70%);
+  z-index: 100;
+  pointer-events: none;
+  animation: overlayFade 2.6s ease forwards;
+}
+
+.intro-logo {
+  width: min(72vw, 360px);
+  height: auto;
+  animation: logoDive 2.6s ease forwards;
+  filter: drop-shadow(0 18px 45px rgba(0, 0, 0, 0.45));
+}
+
+.main-grid {
+  position: relative;
+  isolation: isolate;
+  background-color: #ffffff;
+  min-height: calc(100vh - 84px);
+  overflow: hidden;
+}
+
+.main-grid > * {
+  position: relative;
+  z-index: 1;
+}
+
+.grid-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.main-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 196, 0, 0.95) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 196, 0, 0.95) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0;
+  opacity: 0;
+  clip-path: circle(0% at var(--pulse-x, 50%) var(--pulse-y, 12%));
+  pointer-events: none;
+  z-index: 0;
+}
+
+.main-grid.main-grid--pulse::after {
+  animation: gridPulse 1.8s ease forwards;
+}
+
+.hero-title {
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.typewriter {
+  display: inline-block;
+  border-right: 2px solid rgba(20, 20, 20, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  min-height: 1em;
+  animation: caretBlink 0.7s steps(1) infinite;
+}
+
+.typewriter--done {
+  border-right-color: transparent;
+  animation: none;
+}
+
+.typewriter--idle {
+  border-right-color: transparent;
+  animation: none;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  will-change: opacity, transform;
+}
+
+.reveal--in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-intro {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  will-change: opacity, transform;
+}
+
+.reveal-intro--in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.about-extended {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(12px);
+  transition: max-height 0.8s ease, opacity 0.6s ease, transform 0.6s ease;
+}
+
+.about-extended--open {
+  max-height: 1200px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .reveal-intro {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .about-extended {
+    max-height: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+@keyframes logoDive {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  65% {
+    transform: scale(0.28) rotate(360deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(0.04) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes gridPulse {
+  0% {
+    opacity: 0;
+    clip-path: circle(0% at var(--pulse-x, 50%) var(--pulse-y, 12%));
+  }
+  20% {
+    opacity: 1;
+    clip-path: circle(12% at var(--pulse-x, 50%) var(--pulse-y, 12%));
+  }
+  65% {
+    opacity: 0.95;
+    clip-path: circle(55% at var(--pulse-x, 50%) var(--pulse-y, 12%));
+  }
+  100% {
+    opacity: 0;
+    clip-path: circle(120% at var(--pulse-x, 50%) var(--pulse-y, 12%));
+  }
+}
+
+@keyframes caretBlink {
+  0%,
+  50% {
+    border-right-color: rgba(20, 20, 20, 0.7);
+  }
+  51%,
+  100% {
+    border-right-color: transparent;
+  }
+}
+
+@keyframes overlayFade {
+  0% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

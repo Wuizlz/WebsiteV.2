@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daniel Briseno</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Unbounded:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/index.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/@babel/standalone/babel.min.js"
+    ></script>
+
+    <script type="text/babel">
+      const { useEffect, useState } = React;
+
+      const schoolEmBullets = [
+        "Designed and deployed a university-focused social platform using React, Supabase (Auth/DB/Storage), and PostgreSQL, implementing authentication, protected routes, and feed-based content systems",
+        "Designed relational schemas and implemented row-level security (RLS), triggers, and optimized indexing to support secure, scalable user interactions",
+        "Led the development and evolution of SchoolEm from concept to deployed platform, overseeing architecture, feature prioritization, and system optimization",
+        "mplemented feed pagination and profile-scoped content access using Postgres queries/RLS policies, plus client-side image compression to reduce upload payload size",
+        "Owned deployment on Vercel and GitHub workflow; drove iteration from feedback to releases.",
+        "Delegated tasks, reviewed PRs, and set engineering standards for reliability and maintainability.",
+      ];
+
+      const techStack = [
+        "React + Vite",
+        "Tailwind / Styled Components",
+        "Supabase (Postgres, Auth, Storage)",
+        "Row-Level Security",
+        "Vercel",
+        "Git + GitHub",
+      ];
+
+      const App = () => {
+        const introText = "Hi, My name Is Daniel Briseno";
+        const [typedText, setTypedText] = useState("");
+        const [typingDone, setTypingDone] = useState(false);
+        const [gridPulse, setGridPulse] = useState(false);
+        const [pulseDone, setPulseDone] = useState(false);
+        const [hoverEnabled, setHoverEnabled] = useState(false);
+        const [aboutOpen, setAboutOpen] = useState(false);
+        const mainRef = React.useRef(null);
+        const canvasRef = React.useRef(null);
+        const mouseRef = React.useRef({ x: 0, y: 0, active: false });
+        const rafRef = React.useRef(null);
+        const drawRef = React.useRef(null);
+
+        useEffect(() => {
+          let intervalId;
+          const pulseTimeout = setTimeout(() => {
+            setGridPulse(true);
+          }, 2700);
+          const pulseDoneTimeout = setTimeout(() => {
+            setPulseDone(true);
+          }, 4500);
+          const typeTimeout = setTimeout(() => {
+            let index = 0;
+            intervalId = setInterval(() => {
+              index += 1;
+              setTypedText(introText.slice(0, index));
+              if (index >= introText.length) {
+                clearInterval(intervalId);
+                setTypingDone(true);
+              }
+            }, 55);
+          }, 3850);
+
+          return () => {
+            clearTimeout(pulseTimeout);
+            clearTimeout(pulseDoneTimeout);
+            clearTimeout(typeTimeout);
+            if (intervalId) {
+              clearInterval(intervalId);
+            }
+          };
+        }, []);
+
+        const introDone = typingDone && pulseDone;
+
+        useEffect(() => {
+          setHoverEnabled(introDone);
+          if (!introDone) {
+            mouseRef.current.active = false;
+            if (drawRef.current) {
+              drawRef.current();
+            }
+          }
+        }, [introDone]);
+
+        useEffect(() => {
+          const elements = document.querySelectorAll(".reveal");
+          if (!elements.length) return;
+
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("reveal--in");
+                }
+              });
+            },
+            { threshold: 0.18, rootMargin: "0px 0px -10% 0px" },
+          );
+
+          elements.forEach((el) => observer.observe(el));
+          return () => observer.disconnect();
+        }, []);
+
+        useEffect(() => {
+          const mainEl = mainRef.current;
+          const canvas = canvasRef.current;
+          if (!mainEl || !canvas) return;
+
+          const ctx = canvas.getContext("2d");
+          const gridSize = 24;
+          const gridColor = "rgba(0, 0, 0, 0.22)";
+          const glowColor = "rgba(255, 196, 0, 1)";
+
+          const draw = () => {
+            const { width, height } = mainEl.getBoundingClientRect();
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = gridColor;
+            ctx.beginPath();
+            for (let x = 0; x <= width; x += gridSize) {
+              ctx.moveTo(x, 0);
+              ctx.lineTo(x, height);
+            }
+            for (let y = 0; y <= height; y += gridSize) {
+              ctx.moveTo(0, y);
+              ctx.lineTo(width, y);
+            }
+            ctx.stroke();
+
+            if (mouseRef.current.active) {
+              const radius = Math.min(width, height) * 0.15;
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(
+                mouseRef.current.x,
+                mouseRef.current.y,
+                radius,
+                0,
+                Math.PI * 2,
+              );
+              ctx.clip();
+              ctx.strokeStyle = glowColor;
+              ctx.beginPath();
+              for (let x = 0; x <= width; x += gridSize) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+              }
+              for (let y = 0; y <= height; y += gridSize) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+              }
+              ctx.stroke();
+              ctx.restore();
+            }
+          };
+
+          const resize = () => {
+            const { width, height } = mainEl.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = Math.round(width * dpr);
+            canvas.height = Math.round(height * dpr);
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            draw();
+          };
+
+          const scheduleDraw = () => {
+            if (rafRef.current) return;
+            rafRef.current = requestAnimationFrame(() => {
+              rafRef.current = null;
+              draw();
+            });
+          };
+
+          drawRef.current = scheduleDraw;
+          resize();
+
+          window.addEventListener("resize", resize);
+          return () => {
+            window.removeEventListener("resize", resize);
+            if (rafRef.current) {
+              cancelAnimationFrame(rafRef.current);
+            }
+          };
+        }, []);
+
+        const handleMouseMove = (event) => {
+          if (!hoverEnabled) return;
+          const el = mainRef.current;
+          if (!el) return;
+          const rect = el.getBoundingClientRect();
+          mouseRef.current.x = event.clientX - rect.left;
+          mouseRef.current.y = event.clientY - rect.top;
+          mouseRef.current.active = true;
+          if (drawRef.current) {
+            drawRef.current();
+          }
+        };
+
+        const handleMouseLeave = () => {
+          mouseRef.current.active = false;
+          if (drawRef.current) {
+            drawRef.current();
+          }
+        };
+
+        return (
+          <div className="min-h-screen">
+            <div className="intro-overlay">
+              <img
+                src="/public/images/logo.png"
+                alt="SchoolEm logo"
+                className="intro-logo"
+              />
+            </div>
+
+            <header className="sticky top-0 z-40 border-b border-black/10 bg-white/70 backdrop-blur-md">
+              <div className="mx-auto flex max-w-6xl flex-col items-start gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3">
+                  <a href="./index.html" className="flex items-center gap-3">
+                    <img
+                      src="/public/images/logo.png"
+                      alt="Logo"
+                      className="h-10 w-10"
+                    />
+                    <span className="text-lg font-semibold tracking-tight">
+                      Daniel B.
+                    </span>
+                  </a>
+                </div>
+                <nav className="flex flex-wrap gap-6 text-sm font-medium uppercase tracking-[0.2em] text-black/70">
+                  <a
+                    className="rounded-full border border-black/20 px-4 py-2 text-black transition hover:border-black"
+                    href="./Daniel_final_res2_Feb16.pdf"
+                    download="Daniel_final_res2_Feb16.pdf"
+                  >
+                    Resume
+                  </a>
+                </nav>
+              </div>
+            </header>
+
+            <main
+              ref={mainRef}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              className={`main-grid pb-16  ${gridPulse ? "main-grid--pulse" : ""}`}
+              style={{ "--pulse-x": "50%", "--pulse-y": "20%" }}
+            >
+              <canvas
+                ref={canvasRef}
+                className="grid-canvas"
+                aria-hidden="true"
+              ></canvas>
+              <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6">
+                <section className="mt-10 flex ">
+                  <h1 className="hero-title">
+                    <span
+                      className={`typewriter ${typedText ? "" : "typewriter--idle"} ${typingDone ? "typewriter--done" : ""}`}
+                      aria-live="polite"
+                    >
+                      {typedText}
+                    </span>
+                  </h1>
+                </section>
+                <section
+                  className={`reveal-intro ${introDone ? "reveal-intro--in" : ""} rounded-3xl border border-black/10 bg-white/70 p-8`}
+                >
+                  <div className="flex flex-col gap-8">
+                    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.4em] text-black/50">
+                          About
+                        </p>
+                        <h2 className="mt-3 text-3xl font-semibold">
+                          About Me
+                        </h2>
+                        <p className="mt-3 max-w-2xl text-sm text-black/70">
+                          I’m a Computer Science student at Purdue University
+                          Northwest and the founder of SchoolEm — a
+                          university-focused platform designed to improve how
+                          students connect, collaborate, and grow
+                          professionally. I don’t just like writing code; I like
+                          building systems that solve real problems.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <img
+                          src="/public/images/linkedin_headshot.png"
+                          alt="Daniel Briseno"
+                          className="h-28 w-28 rounded-2xl object-contain"
+                        />
+                        <div className="text-sm text-black/60">
+                          <p>Software Engineering</p>
+                          <p>Product-minded builder</p>
+                          <p>Purdue Northwest</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <p className="text-xs uppercase tracking-[0.4em] text-black/50">
+                        Extended Profile
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setAboutOpen((open) => !open)}
+                        aria-expanded={aboutOpen}
+                        aria-controls="about-extended"
+                        className="rounded-full border border-black/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black transition hover:border-black"
+                      >
+                        {aboutOpen ? "Collapse" : "Expand"}
+                      </button>
+                    </div>
+
+                    <div
+                      id="about-extended"
+                      className={`about-extended ${aboutOpen ? "about-extended--open" : ""}`}
+                    >
+                      <div className="grid gap-6">
+                        <div className="rounded-2xl border border-black/10 bg-white/80 p-6">
+                          <p className="text-xs uppercase tracking-[0.4em] text-black/50">
+                            Who Am I
+                          </p>
+                          <h3 className="mt-3 text-2xl font-semibold">
+                            Personal Snapshot
+                          </h3>
+                          <p className="mt-3 text-sm text-black/70">
+                            As a young kid in middle school, I was far from who
+                            I felt I was meant to be. I struggled to articulate
+                            my thoughts clearly. I would trip over my words,
+                            speak jittery sentences, and constantly fear
+                            embarrassment. I avoided the spotlight. Leadership
+                            wasn’t something I chased — it was something I hid
+                            from. I had no strong ambition, no visible
+                            direction, just quiet uncertainty. As I grew older,
+                            I naturally improved at basic social skills. I could
+                            make friends, hold conversations, and navigate
+                            situations better — but something still felt
+                            incomplete. My confidence was surface-level.
+                            Internally, I still doubted my ability to fully
+                            express myself or take ownership of a bigger path.
+                            Then I chose Computer Science — almost blindly. I
+                            entered college without truly understanding what I
+                            was stepping into. But freshman year marked a shift.
+                            I made a conscious decision to become “new.” I began
+                            stepping outside more, attending events, meeting
+                            people, pushing myself socially in ways I never had
+                            before. It wasn’t perfect — but it was progress.
+                            Still, my future felt unpredictable. That
+                            uncertainty began to change when I encountered
+                            Professor Roger Kraft — an outstanding professor
+                            whose depth of knowledge and intellectual intensity
+                            left a strong impression on me. He carried a level
+                            of ambition and understanding that sparked something
+                            in me. For the first time, I saw what mastery looked
+                            like. That inspiration triggered a chain reaction. I
+                            began researching on my own. Reading outside of
+                            class. Diving deeper into software concepts beyond
+                            assignments. When I took my first true
+                            software-focused course, I was amazed. It felt like
+                            discovering a new world — one built on logic,
+                            structure, and creativity. That moment lit a fire.
+                            But that fire came with imbalance. In my eagerness
+                            to pursue software engineering, I started viewing
+                            other classes as distractions — obstacles between me
+                            and what I wanted to focus on. I tried to allocate
+                            all my time to SWE-related learning, missing a
+                            crucial truth: the foundational courses I overlooked
+                            were shaping my logical thinking. They were training
+                            the mental muscles that allow me to understand not
+                            just how systems work — but why. As I progressed, I
+                            found myself immersed in research and self-driven
+                            learning again — but this time with more maturity.
+                            Around that same period, the idea for SchoolEm began
+                            forming. At its core, SchoolEm addresses something
+                            deeply personal to me. Growing up, I struggled with
+                            articulation, confidence, and feeling aligned with
+                            my potential. In college, I saw similar struggles
+                            around me — students with talent but no platform to
+                            express it, students with ambition but no structure
+                            to channel it, students navigating isolation in
+                            environments meant to foster growth. SchoolEm became
+                            my response to that problem. It is my attempt to
+                            build a system that helps students connect,
+                            collaborate, express their abilities, and grow into
+                            who they are meant to become — without waiting years
+                            to discover their direction like I did. I’m still
+                            evolving. My future isn’t fully mapped out. But I’m
+                            no longer uncertain about one thing: I am building
+                            myself the same way I build software — iteratively,
+                            intentionally, and with long-term vision.
+                          </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-black/10 bg-white/80 p-6">
+                          <p className="text-xs uppercase tracking-[0.4em] text-black/50">
+                            Gallery
+                          </p>
+                          <h3 className="mt-3 text-2xl font-semibold">
+                            Photo Carousel
+                          </h3>
+                          <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
+                            <div className="min-w-[220px] rounded-2xl border border-dashed border-black/20 bg-white/60 p-4">
+                              <img
+                                src="./public/images/goofy_me.jpeg"
+                                alt="Me"
+                                className="h-40 w-full rounded-xl object-cover"
+                              />
+                            </div>
+                            <div className="min-w-[220px] rounded-2xl border border-dashed border-black/20 bg-white/60 p-4">
+                              <img
+                                src="./public/images/me_n_wife.jpeg"
+                                alt="couple"
+                                className="h-40 w-full rounded-xl object-cover"
+                              />
+                            </div>
+                            <div className="min-w-[220px] rounded-2xl border border-dashed border-black/20 bg-white/60 p-4">
+                              <img
+                                src="./public/images/me_n_friends.jpeg"
+                                alt="group of friends"
+                                className="h-40 w-full rounded-xl object-cover"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="rounded-2xl border border-black/10 bg-white/80 p-6">
+                            <p className="text-xs uppercase tracking-[0.4em] text-black/50">
+                              Currently Learning
+                            </p>
+                            <ul className="mt-3 grid gap-3 text-sm text-black/70">
+                              <li className="flex items-center gap-3">
+                                <img
+                                  src="./public/images/spring.png"
+                                  alt="Spring"
+                                  className="h-8 w-8 rounded-md object-contain"
+                                />
+                                <span>Spring and Spring Boot</span>
+                              </li>
+                              <li className="flex items-center gap-3">
+                                <img
+                                  src="./public/images/next-js.png"
+                                  className="h-8 w-8 rounded-md object-contain"
+                                />
+                                NextJs
+                              </li>
+                              <li className="flex items-center gap-3">
+                                <img
+                                  src="./public/images/aws.png"
+                                  className="h-8 w-8 rounded-md object-contain"
+                                />
+                                AWS
+                              </li>
+                            </ul>
+                          </div>
+                          <div className="rounded-2xl border border-black/10 bg-white/80 p-6">
+                            <p className="text-xs uppercase tracking-[0.4em] text-black/50">
+                              Currently Reading
+                            </p>
+                            <ul className="mt-3 grid gap-2 text-sm text-black/70">
+                              <li className="flex items-center gap-3">
+                                • Designing Data-Intensive Applications 
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <section
+                  className={`reveal-intro ${introDone ? "reveal-intro--in" : ""} rounded-3xl border border-black/10 bg-white/70 p-8 shadow-[0_25px_80px_-50px_rgba(0,0,0,0.45)]`}
+                >
+                  <div className="flex items-center justify-between gap-6">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.4em] text-black/50">
+                        Experience
+                      </p>
+                      <h1 className="mt-3 text-3xl font-semibold md:text-4xl">
+                        Leadership and Product Work
+                      </h1>
+                    </div>
+                    <div className="hidden h-16 w-24 rounded-full border border-black/10 bg-gradient-to-r from-amber-300 via-amber-200 to-white md:block" />
+                  </div>
+
+                  <div className="mt-8 grid gap-8">
+                    <article className="rounded-2xl border border-black/10 bg-white/80 p-6 shadow-sm">
+                      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+                        <div className="flex items-start gap-4">
+                          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-black/5">
+                            <img
+                              src="/public/images/logo.png"
+                              alt="SchoolEm logo"
+                              className="h-12 w-12"
+                            />
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-semibold">SchoolEm</h2>
+                            <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-black/60">
+                              Founder &amp; Team Lead
+                            </p>
+                            <p className="mt-3 text-sm text-black/70">
+                              University-exclusive social platform built around
+                              .edu email verification to improve student
+                              connection, collaboration, and campus engagement.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <ul className="mt-6 grid gap-3 text-sm text-black/80">
+                        {schoolEmBullets.map((item) => (
+                          <li key={item} className="flex gap-3">
+                            <span className="mt-1 h-2 w-2 rounded-full bg-amber-500" />
+                            <span className="leading-relaxed">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="mt-6 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-black/60">
+                        {techStack.map((tech) => (
+                          <span
+                            key={tech}
+                            className="rounded-full border border-black/10 bg-white px-3 py-1"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </article>
+
+                    <article className="rounded-2xl border border-black/10 bg-white/80 p-6 shadow-sm">
+                      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-black/5">
+                            <a href="https://www.costco.com">
+                              <img
+                                src="./public/images/Unknown.png"
+                                alt="Costco"
+                                className="h-12 w-12"
+                              />
+                            </a>
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-semibold">Costco</h2>
+                            <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-black/60">
+                              Night Stocker
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="mt-4 text-sm text-black/70 leading-relaxed">
+                        I collaborated closely with team members to consistently
+                        meet daily operational efficiency goals while helping
+                        drive sales by guiding customers to products quickly and
+                        effectively. Through high-efficiency stocking and
+                        workflow optimization, I increased inventory throughput
+                        by approximately 10%. During peak seasonal periods, I
+                        supported team performance by reallocating staff to
+                        high-priority areas, improving restocking efficiency and
+                        reducing delays on the sales floor.
+                      </p>
+                    </article>
+                  </div>
+                </section>
+
+                <section
+                  className={`reveal-intro ${introDone ? "reveal-intro--in" : ""} rounded-3xl border border-black/10 bg-white/70 p-8`}
+                >
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em] text-black/50">
+                      Projects
+                    </p>
+                    <h2 className="mt-3 text-3xl font-semibold">
+                      Room for Projects
+                    </h2>
+                    <p className="mt-3 text-sm text-black/70">
+                      Reserved space for selected case studies, demos, and
+                      builds.
+                    </p>
+                  </div>
+                  <div className="mt-6 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-2xl border border-dashed border-black/20 bg-white/60 p-6">
+                      <p className="text-sm text-black/60">Project slot #1</p>
+                      <p className="mt-2 text-lg font-semibold">
+                        Add a flagship build here
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-dashed border-black/20 bg-white/60 p-6">
+                      <p className="text-sm text-black/60">Project slot #2</p>
+                      <p className="mt-2 text-lg font-semibold">
+                        Add a technical deep dive
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                <section
+                  className={`reveal-intro ${introDone ? "reveal-intro--in" : ""} rounded-3xl border border-black/10 bg-white/70 p-8`}
+                >
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em] text-black/50">
+                      Education
+                    </p>
+                    <h2 className="mt-3 text-3xl font-semibold">
+                      Purdue University NW
+                    </h2>
+                    <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-black/60">
+                      Present
+                    </p>
+                  </div>
+                  <div className="mt-6 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-4">
+                      <a href="https://www.pnw.edu">
+                        <img
+                          src="/public/images/Purdue_Boilermakers_logo.svg.png"
+                          alt="Purdue logo"
+                          className="h-16 w-16"
+                        />
+                      </a>
+                      <div>
+                        <p className="text-sm text-black/70">Honors College</p>
+                        <p className="text-sm text-black/70">
+                          Computer Science Major
+                        </p>
+                      </div>
+                    </div>
+                    <ul className="grid gap-2 text-sm text-black/70">
+                      <li>3.5 GPA</li>
+                      <li>CS Club</li>
+                      <li>Honors Club</li>
+                    </ul>
+                  </div>
+                </section>
+              </div>
+            </main>
+          </div>
+        );
+      };
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>
